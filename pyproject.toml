@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "papers-please"
+version = "0.1.0"
+description = "Document corner detection from smartphone video frames"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=2.0",
+    "pandas>=2.2",
+    "opencv-python>=4.9",
+    "pillow>=10.0",
+    "matplotlib>=3.8",
+    "scikit-learn>=1.4",
+    "tqdm>=4.66",
+]
+
+# torch is deliberately not pinned here -- the modeling track installs the CUDA
+# build that matches the cloud GPU box.
+
+[tool.setuptools]
+# Everything in src/ is importable top level: `from dataset import ...`,
+# `from preprocess import ...`.  src/ is a container, not a package -- it is
+# deliberately not named lib/, which the standard Python .gitignore template
+# ignores (that would silently untrack the whole codebase).
+package-dir = { "" = "src" }
+packages = ["preprocess"]
+py-modules = ["augment", "baselines", "dataset", "metrics", "viz"]

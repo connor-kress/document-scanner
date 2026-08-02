@@ -21,8 +21,41 @@ pick "Papers, Please (.venv)" in the kernel selector** (top right of the
 notebook). If you get `ModuleNotFoundError: No module named 'preprocess'`, the
 notebook is running some other Python — that's the fix.
 
-The dataset is not in git (1.2 GB). Put the SmartDoc 2015 Challenge 1 frames at
-`data/raw/frames/`, then:
+## Get the data
+
+The dataset is 1.3 GB, so it is not in git. Download it once:
+
+1. Go to the SmartDoc 2015 Challenge 1 release:
+   <https://github.com/jchazalon/smartdoc15-ch1-dataset/releases/tag/v2.0.0>
+2. Download **`frames.tar.gz`** (~1 GB).
+3. Extract it into `data/raw/` so you end up with a `frames` folder:
+
+   ```powershell
+   mkdir data\raw
+   tar -xzf frames.tar.gz -C data\raw
+   ```
+
+   `tar` ships with Windows 10+, macOS and Linux. If the archive extracts as
+   loose files instead of a `frames` folder, move them into `data/raw/frames/`
+   yourself.
+
+You should end up with exactly this:
+
+```
+data/raw/frames/
+├── background01/ ... background05/     the 24,889 photos
+├── metadata.csv.gz                     the corner labels
+├── README.md, LICENCE, VERSION
+└── original_datasets_files.txt
+```
+
+Check it worked:
+
+```powershell
+python -c "from preprocess import FRAMES; print(FRAMES.exists(), (FRAMES/'metadata.csv.gz').exists())"
+```
+
+Both should print `True`. Then build everything:
 
 ```bash
 python scripts/build_data.py all      # ~6 min on 10 cores

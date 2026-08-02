@@ -4,19 +4,42 @@ One page. Everything you need to start modelling.
 
 ## Setup
 
+**1. Install.**
+
 ```bash
 python -m venv .venv
 .venv/Scripts/activate
 pip install -e .
-python -m ipykernel install --user --name papers-please --display-name "Papers, Please (.venv)"
-python scripts/build_data.py all      # ~6 min, regenerates everything
+python -m ipykernel install --user --name venv --display-name "venv"
 ```
 
-**In a notebook, select the "Papers, Please (.venv)" kernel.** Otherwise Jupyter
-runs a different Python and you get `ModuleNotFoundError: No module named
-'preprocess'`.
+**2. Download the dataset.** It is 1.3 GB, so it is not in git.
 
-## Get the data (pick one)
+Get **`frames.tar.gz`** from
+<https://github.com/jchazalon/smartdoc15-ch1-dataset/releases/tag/v2.0.0>
+and extract it into `data/raw/`:
+
+```powershell
+mkdir data\raw
+tar -xzf frames.tar.gz -C data\raw
+```
+
+You should end up with `data/raw/frames/` containing `background01/` …
+`background05/` and `metadata.csv.gz`. Check with:
+
+```powershell
+python -c "from preprocess import FRAMES; print(FRAMES.exists(), (FRAMES/'metadata.csv.gz').exists())"
+```
+
+Both must print `True`.
+
+**3. Build everything.**
+
+```bash
+python scripts/build_data.py all      # ~6 min
+```
+
+## Load the data (pick one)
 
 **Option A — everything in memory. Use this for ridge, MLP, and a first CNN.**
 

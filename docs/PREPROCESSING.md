@@ -2,7 +2,17 @@
 
 
 What the data pipeline does, and the things the rest of the team has to carry
-forward. Run it with `python scripts/build_data.py all`.
+forward.
+
+---
+
+## First: get the data
+
+The photos are not in git (1.3 GB). Download `frames.tar.gz` from
+<https://github.com/jchazalon/smartdoc15-ch1-dataset/releases/tag/v2.0.0>
+and extract it into `data/raw/`, then run `python scripts/build_data.py all`.
+
+Full steps in [START_HERE.md](START_HERE.md).
 
 ---
 

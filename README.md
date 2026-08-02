@@ -13,11 +13,11 @@ multi-output regression problem. ML term project.
 python -m venv .venv
 .venv/Scripts/activate          # macOS/Linux: source .venv/bin/activate
 pip install -e .                # makes `src/` importable everywhere -- no path hacks
-python -m ipykernel install --user --name papers-please --display-name "Papers, Please (.venv)"
+python -m ipykernel install --user --name venv --display-name "venv"
 ```
 
 That last line registers this venv as a notebook kernel. **In VS Code or Jupyter,
-pick "Papers, Please (.venv)" in the kernel selector** (top right of the
+pick "venv" in the kernel selector** (top right of the
 notebook). If you get `ModuleNotFoundError: No module named 'preprocess'`, the
 notebook is running some other Python — that's the fix.
 
@@ -98,26 +98,3 @@ docs/             the proposal, plus the hand-off write-ups
 reports/figures/  committed plots for the presentation
 data/             git-ignored: raw frames in, processed artifacts out
 ```
-
-## Who owns what
-
-| Area | Owner |
-|---|---|
-| Preprocessing, augmentation, data hand-off | Cole |
-| EDA and visualisation | Joshua, Samy |
-| Model implementation, CV, tuning | Vinh |
-| Cloud GPU, results interpretation | Connor |
-
-## Conventions
-
-- **`src/` is shared, notebooks are personal.** If you write something another
-  person will call, it belongs in `src/`. Numbered notebooks have one owner —
-  two people editing one `.ipynb` produces a merge conflict you cannot resolve
-  by hand.
-- **Score every model through `metrics.evaluate()`.** If ridge and the CNN
-  use different IoU implementations the comparison table in the report is wrong
-  and nothing will make that obvious.
-- **Never split randomly.** Consecutive video frames are near-duplicates. Use
-  the `split_video` / `split_doc` columns, or `GroupKFold` with
-  `groups=groups["train"]`.
-- **Regenerate, don't commit.** Nothing in `data/` goes in git.

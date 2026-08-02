@@ -15,6 +15,8 @@ dependencies = [
     "matplotlib>=3.8",
     "scikit-learn>=1.4",
     "tqdm>=4.66",
+    "pyyaml>=6.0",
+    "joblib>=1.3",
 ]
 
 # torch is deliberately not pinned here -- the modeling track installs the CUDA
@@ -26,5 +28,5 @@ dependencies = [
 # deliberately not named lib/, which the standard Python .gitignore template
 # ignores (that would silently untrack the whole codebase).
 package-dir = { "" = "src" }
-packages = ["preprocess"]
+packages = ["preprocess", "models", "training", "evaluation", "utils"]
 py-modules = ["augment", "baselines", "dataset", "metrics", "viz"]

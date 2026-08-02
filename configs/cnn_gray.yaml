@@ -1,0 +1,13 @@
+name: cnn_gray
+model_type: cnn
+color_mode: gray
+scheme: split_video
+image_size: [384, 216]
+batch_size: 32
+learning_rate: 0.0003
+weight_decay: 0.0001
+dropout: 0.3
+loss: smooth_l1
+max_epochs: 60
+patience: 12
+random_seed: 42

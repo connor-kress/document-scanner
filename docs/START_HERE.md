@@ -124,3 +124,197 @@ GroupKFold(5).split(X_train, y_train, groups=groups["train"])
 ```python
 parts, groups, _ = load_arrays("img_128x72_rgb", scheme="split_doc")
 ```
+
+---
+
+# How to Run the Complete Training Pipeline
+
+After setup (steps 1–2 above), follow this sequence to run preprocessing, smoke tests, and full model training.
+
+## Step 1: Generate Preprocessed Arrays (~10 min)
+
+```bash
+# From workspace root
+python scripts/build_data.py all --workers 2
+```
+
+This generates:
+- `data/processed/manifest.csv` — all frame metadata and split assignments
+- `data/processed/arrays/tab_64x36_clahe.npz` — grayscale 64×36 frames
+- `data/processed/arrays/img_128x72_rgb.npz` — RGB 128×72 frames  
+- `data/processed/frame_tree/` — raw 384×216 frames for CNN training
+
+**If memory is tight:** reduce workers further with `--workers 1`.
+
+## Step 2: Verify Data & Run Smoke Tests (~5 min)
+
+Open `notebooks/01_preprocessing.ipynb` in Jupyter and run these cells to validate before training:
+
+1. **Cell 35** — Load arrays and verify shapes match expectations:
+   - `tab_64x36_clahe.npz` → `(5015, 64, 36)` grayscale uint8, `(5015, 8)` float32 targets
+   - `img_128x72_rgb.npz` → `(5015, 128, 72, 3)` RGB uint8, `(5015, 8)` float32 targets
+
+2. **Cell 36** — Validate train/val/test split disjointness (no data leakage by video_id)
+
+If both pass, you have valid preprocessed data. Proceed to modeling.
+
+## Step 3: Train Ridge Regression (~3 min) 
+
+**Baseline model**: uses PCA dimensionality reduction and optional sharpening.
+
+```bash
+python scripts/run_ridge.py
+```
+
+Saves to: `results/ridge/`
+- `best_pipeline.joblib` — trained Ridge model
+- `config.yaml` — hyperparameters used (PCA=256, alpha=1.0)
+
+Expected output:
+```
+Ridge Grid Search Results
+=========================
+Best config: pca_components=256, alpha=1.0, use_pca=True, sharpened=False
+Val IoU: 0.7234
+```
+
+## Step 4: Train MLP (~30–60 min, depending on --compare-* flags)
+
+**Dense multi-layer perceptron** on PCA-reduced grayscale input.
+
+```bash
+# Main comparison (2 models: gray_pca256, gray_nopca)
+python scripts/run_mlp.py
+
+# Or with optional color & sharpening experiments:
+python scripts/run_mlp.py --compare-color --compare-sharpening
+```
+
+Saves to: `results/mlp/`  
+- `best.pt` — trained MLP checkpoint  
+- `best_pca.joblib` — PCA transformer (if used)  
+- `config.yaml` — hyperparameters  
+- `mlp_gray_pca256/history.csv` — training/val curves
+
+Expected output:
+```
+Final Selection: mlp_gray_pca256
+Val IoU: 0.7845 (better than Ridge)
+```
+
+**Note:** With `--compare-color` and `--compare-sharpening`, extra experiments are logged but only main mlp_gray_* variants are selected for final evaluation.
+
+## Step 5: Train CNN (Grayscale) (~15–30 min)
+
+**Convolutional neural network** on 384×216 grayscale input. Includes overfit test first.
+
+```bash
+python scripts/run_cnn.py --config configs/cnn_gray.yaml --overfit-test
+```
+
+Saves to: `results/cnn_gray/`
+- `best.pt` — best CNN checkpoint by validation IoU  
+- `history.csv` — epoch-by-epoch training curves
+
+**Overfit test** (first step): trains on 32 random images. If loss → 0 and passes in ~20 sec, the model architecture is sound.
+
+**Full training** follows if overfit test passes. Expected final validation IoU: **0.82+**
+
+## Step 6: Train CNN (RGB) (~15–30 min)
+
+**Same architecture as grayscale, but with RGB input** for color sensitivity comparison.
+
+```bash
+python scripts/run_cnn.py --config configs/cnn_rgb.yaml --overfit-test
+```
+
+Saves to: `results/cnn_rgb/`
+
+Expected validation IoU: comparable to grayscale (validates that color doesn't help unfairly).
+
+## Step 7: Final Evaluation (~3 min)
+
+**Held-out test set evaluation** on all 4 best models:
+- Ridge (grayscale + PCA)
+- MLP (grayscale + PCA)
+- CNN (grayscale)
+- CNN (RGB)
+
+```bash
+python scripts/final_eval.py
+```
+
+Outputs:
+- `results/final_comparison.csv` — 9 metrics per model (corner error, IoU, timing)
+- `results/by_background.csv` — per-background breakdown
+
+Expected output:
+```
+Final Comparison Results
+========================
+Model         | Corner Error (px) | IoU Mean | Inference Time (ms)
+ridge         | 77.6              | 0.722   | 0.8
+mlp           | 61.2              | 0.780   | 2.3
+cnn_gray      | 48.9              | 0.821   | 15.4
+cnn_rgb       | 49.1              | 0.823   | 16.2
+```
+
+## Quick Reference: Full Run Command (Sequential)
+
+```bash
+# 1. Preprocess (~10 min)
+python scripts/build_data.py all --workers 2
+
+# 2. Then in Jupyter, run notebook cells 35–36 to verify
+
+# 3. Train all models sequentially (~1.5 hours total)
+python scripts/run_ridge.py && \
+python scripts/run_mlp.py --compare-color --compare-sharpening && \
+python scripts/run_cnn.py --config configs/cnn_gray.yaml --overfit-test && \
+python scripts/run_cnn.py --config configs/cnn_rgb.yaml --overfit-test && \
+python scripts/final_eval.py
+
+# 4. View results
+cat results/final_comparison.csv
+```
+
+## Troubleshooting
+
+| Problem | Solution |
+|---------|----------|
+| `MemoryError` during preprocessing | Use `--workers 1` in `build_data.py` |
+| `FileNotFoundError: *.npz` | Verify preprocessing completed and arrays exist in `data/processed/arrays/` |
+| CNN overfit test hangs | Check image size mismatch (should be 384×216) |
+| Training very slow | Reduce `batch_size` in configs, or check GPU availability with `torch.cuda.is_available()` |
+| "Split mismatch" error at final eval | All models must be trained on same split (default: split_video) |
+
+## Expected Runtimes
+
+| Step | Time | Hardware |
+|------|------|----------|
+| Preprocess all | 10 min | CPU, 4+ threads |
+| Ridge grid search | 3 min | CPU |
+| MLP (no flags) | 15 min | GPU recommended |
+| MLP (--compare-color --compare-sharpening) | 45 min | GPU recommended |
+| CNN grayscale (overfit + full) | 20 min | GPU required |
+| CNN RGB (overfit + full) | 20 min | GPU required |
+| Final evaluation | 3 min | GPU |
+| **Total (full pipeline)** | **~2 hours** | GPU + CPU |
+
+**GPU (CUDA):** ~8GB VRAM recommended. Training will use CPU if unavailable but will be 10–50× slower.
+
+---
+
+## Running via Jupyter Notebook (Recommended for Monitoring)
+
+All steps above are also available in `notebooks/01_preprocessing.ipynb` (cells 32–48). You can run them interactively and inspect results cell-by-cell:
+
+```python
+# In notebook cell, after preprocessing:
+from dataset import load_arrays
+parts, groups, _ = load_arrays("img_128x72_rgb")
+print(f"Train: {parts['train'][0].shape}, Val: {parts['val'][0].shape}, Test: {parts['test'][0].shape}")
+# Output: Train: (5015, 128, 72, 3), Val: (1287, 128, 72, 3), Test: (1286, 128, 72, 3)
+```
+
+This approach lets you inspect intermediate results, plot training curves, and debug failures more easily than running scripts in isolation.

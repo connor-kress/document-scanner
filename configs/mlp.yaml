@@ -1,0 +1,15 @@
+name: mlp_gray_pca256
+model_type: mlp
+input_source: tab_64x36_clahe
+scheme: split_video
+pca_components: 256
+use_pca: true
+hidden: [256, 128]
+dropout: [0.3, 0.2]
+learning_rate: 0.0003
+weight_decay: 0.0001
+batch_size: 256
+max_epochs: 100
+patience: 12
+loss: smooth_l1
+random_seed: 42

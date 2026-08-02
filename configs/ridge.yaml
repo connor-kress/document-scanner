@@ -1,0 +1,9 @@
+name: ridge_gray_pca256
+model_type: ridge
+input_source: tab_64x36_clahe
+scheme: split_video
+pca_components: 256
+alpha: 1.0
+use_pca: true
+sharpened: false
+random_seed: 42

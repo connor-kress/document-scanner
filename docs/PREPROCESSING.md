@@ -8,7 +8,9 @@ forward.
 
 ## First: get the data
 
-The photos are not in git (1.3 GB). Download `frames.tar.gz` from
+The normal `python scripts/orchestrate.py` workflow downloads and preprocesses
+the data automatically. To run preprocessing manually, download `frames.tar.gz`
+from
 <https://github.com/jchazalon/smartdoc15-ch1-dataset/releases/tag/v2.0.0>
 and extract it into `data/raw/`, then run `python scripts/build_data.py all`.
 

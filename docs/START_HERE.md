@@ -1,43 +1,19 @@
-# Start here — preprocessed data is ready
+# Start Here
 
 One page. Everything you need to start modelling.
 
 ## Setup
 
-**1. Install.**
+From a Python 3.11+ environment, the complete clean-clone workflow is:
 
 ```bash
-python -m venv .venv
-.venv/Scripts/activate
-pip install -e .
-python -m ipykernel install --user --name venv --display-name "venv"
+python -m pip install -e .
+python scripts/orchestrate.py
 ```
 
-**2. Download the dataset.** It is 1.3 GB, so it is not in git.
-
-Get **`frames.tar.gz`** from
-<https://github.com/jchazalon/smartdoc15-ch1-dataset/releases/tag/v2.0.0>
-and extract it into `data/raw/`:
-
-```powershell
-mkdir data\raw
-tar -xzf frames.tar.gz -C data\raw
-```
-
-You should end up with `data/raw/frames/` containing `background01/` …
-`background05/` and `metadata.csv.gz`. Check with:
-
-```powershell
-python -c "from preprocess import FRAMES; print(FRAMES.exists(), (FRAMES/'metadata.csv.gz').exists())"
-```
-
-Both must print `True`.
-
-**3. Build everything.**
-
-```bash
-python scripts/build_data.py all      # ~6 min
-```
+`orchestrate.py` downloads and verifies the public dataset when needed, safely
+extracts it, preprocesses it, performs all model searches and final training,
+and runs held-out evaluation. Existing valid data is reused automatically.
 
 ## Load the data (pick one)
 
@@ -129,7 +105,8 @@ parts, groups, _ = load_arrays("img_128x72_rgb", scheme="split_doc")
 
 # How to Run the Complete Training Pipeline
 
-After setup (steps 1–2 above), follow this sequence to run preprocessing, smoke tests, and full model training.
+The orchestrator performs every step in this section automatically. The
+individual commands remain available for running or debugging one stage.
 
 ## Step 1: Generate Preprocessed Arrays (~10 min)
 
@@ -268,15 +245,10 @@ cnn_rgb       | 49.1              | 0.823   | 16.2
 ## Quick Reference: Full Run Command (Sequential)
 
 ```bash
-# 1. Preprocess (~10 min)
-python scripts/build_data.py all --workers 2
-
-# 2. Then in Jupyter, run notebook cells 35–36 to verify
-
-# 3. Search, train the selected models on full data, and evaluate them
+# Download and preprocess data when needed, then search, train, and evaluate
 python scripts/orchestrate.py
 
-# 4. View the path printed by final_eval.py
+# View the path printed by final_eval.py
 ```
 
 ## Hyperparameter Search
@@ -323,7 +295,7 @@ YAML-driven training and generated `best.yaml` files use
 
 | Problem | Solution |
 |---------|----------|
-| `MemoryError` during preprocessing | Use `--workers 1` in `build_data.py` |
+| `MemoryError` during preprocessing | Run `python scripts/orchestrate.py --workers 1` |
 | `FileNotFoundError: *.npz` | Verify preprocessing completed and arrays exist in `data/processed/arrays/` |
 | CNN overfit test hangs | Check image size mismatch (should be 384×216) |
 | Training very slow | Reduce `batch_size` in configs, or check GPU availability with `torch.cuda.is_available()` |

@@ -17,10 +17,8 @@ dependencies = [
     "tqdm>=4.66",
     "pyyaml>=6.0",
     "joblib>=1.3",
+    "torch>=2.2",
 ]
-
-# torch is deliberately not pinned here -- the modeling track installs the CUDA
-# build that matches the cloud GPU box.
 
 [tool.setuptools]
 # Everything in src/ is importable top level: `from dataset import ...`,

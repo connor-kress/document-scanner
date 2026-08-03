@@ -29,6 +29,8 @@ class MLPConfig:
     scheme: str = "split_video"
     pca_components: int = 256
     use_pca: bool = True
+    sharpened: bool = False
+    preprocessing: str = "none"
     hidden: list = field(default_factory=lambda: [256, 128])
     dropout: list = field(default_factory=lambda: [0.3, 0.2])
     learning_rate: float = 3e-4
@@ -38,6 +40,8 @@ class MLPConfig:
     patience: int = 12
     loss: str = "smooth_l1"
     random_seed: int = 42
+    train_fraction: float = 1.0
+    subset_seed: int = 42
 
 
 @dataclass
@@ -55,6 +59,8 @@ class CNNConfig:
     max_epochs: int = 60
     patience: int = 12
     random_seed: int = 42
+    train_fraction: float = 1.0
+    subset_seed: int = 42
 
 
 def load_yaml(path: str | Path) -> dict:

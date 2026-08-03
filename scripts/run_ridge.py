@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import csv
 import sys
+import time
 from pathlib import Path
 
 PROJECT = Path(__file__).resolve().parents[1]
@@ -13,22 +14,23 @@ from dataset import load_arrays
 from evaluation.metrics import full_evaluate
 from models.ridge_model import RidgePipeline
 from utils.config import RidgeConfig, save_yaml
+from utils.runs import run_directory
 from utils.seed import seed_everything
 
-RESULTS = PROJECT / "results" / "ridge"
+RESULTS = PROJECT / "results"
 PCA_GRID = [64, 128, 256, 512]
 ALPHA_GRID = [0.01, 0.1, 1.0, 10.0, 100.0]
 
 
-def main() -> None:
+def _run(result_dir: Path) -> None:
     seed_everything(42)
-    RESULTS.mkdir(parents=True, exist_ok=True)
     parts, _, _ = load_arrays("tab_64x36_clahe", scheme="split_video")
     X_train, y_train = parts["train"]
     X_val, y_val = parts["val"]
     rows = []
 
     for alpha in ALPHA_GRID:
+        started = time.perf_counter()
         model = RidgePipeline(alpha=alpha, use_pca=False)
         model.fit(X_train, y_train)
         metrics = full_evaluate(y_val, model.predict(X_val), iou_limit=None)
@@ -40,10 +42,12 @@ def main() -> None:
             "sharpened": False,
             "iou_mean": metrics["iou_mean"],
             "corner_err_px": metrics["corner_err_px"],
+            "elapsed_s": round(time.perf_counter() - started, 3),
         })
 
     for n_components in PCA_GRID:
         for alpha in ALPHA_GRID:
+            started = time.perf_counter()
             model = RidgePipeline(n_components=n_components, alpha=alpha, use_pca=True)
             model.fit(X_train, y_train)
             metrics = full_evaluate(y_val, model.predict(X_val), iou_limit=None)
@@ -55,9 +59,11 @@ def main() -> None:
                 "sharpened": False,
                 "iou_mean": metrics["iou_mean"],
                 "corner_err_px": metrics["corner_err_px"],
+                "elapsed_s": round(time.perf_counter() - started, 3),
             })
 
     stage1_best = max(rows, key=lambda row: row["iou_mean"])
+    started = time.perf_counter()
     sharp_model = RidgePipeline(
         n_components=int(stage1_best["pca_components"]),
         alpha=float(stage1_best["alpha"]),
@@ -74,9 +80,10 @@ def main() -> None:
         "sharpened": True,
         "iou_mean": sharp_metrics["iou_mean"],
         "corner_err_px": sharp_metrics["corner_err_px"],
+        "elapsed_s": round(time.perf_counter() - started, 3),
     })
 
-    with open(RESULTS / "experiments.csv", "w", newline="") as handle:
+    with open(result_dir / "experiments.csv", "w", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=list(rows[0].keys()))
         writer.writeheader()
         writer.writerows(rows)
@@ -89,14 +96,19 @@ def main() -> None:
         sharpened=bool(best["sharpened"]),
     )
     final_model.fit(X_train, y_train)
-    final_model.save(RESULTS / "best_pipeline.joblib")
+    final_model.save(result_dir / "best_pipeline.joblib")
     save_yaml(RidgeConfig(
         name=str(best["name"]),
         pca_components=int(best["pca_components"]),
         alpha=float(best["alpha"]),
         use_pca=bool(best["use_pca"]),
         sharpened=bool(best["sharpened"]),
-    ), RESULTS / "config.yaml")
+    ), result_dir / "config.yaml")
+
+
+def main() -> None:
+    with run_directory(RESULTS, "ridge") as result_dir:
+        _run(result_dir)
 
 
 if __name__ == "__main__":

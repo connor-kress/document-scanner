@@ -146,7 +146,7 @@ def train(
             "train_loss": f"{train_loss:.6f}",
             "val_loss": f"{val_loss:.6f}",
             "val_corner_err_px": f"{val_err:.2f}",
-            "val_iou": f"{val_iou:.4f}",
+            "val_iou": f"{val_iou:.6f}",
             "learning_rate": f"{lr_now:.2e}",
             "elapsed_s": f"{elapsed:.1f}",
         })

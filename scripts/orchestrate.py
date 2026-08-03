@@ -27,7 +27,7 @@ def run_command(cmd, description):
     
     start = time.time()
     try:
-        result = subprocess.run(cmd, check=True)
+        subprocess.run(cmd, check=True, cwd=Path(__file__).resolve().parents[1])
         elapsed = time.time() - start
         print(f"\n✓ SUCCESS: {description} completed in {elapsed/60:.1f} min")
         return True
@@ -41,7 +41,6 @@ def run_command(cmd, description):
 def main():
     """Run the full training pipeline."""
     project_root = Path(__file__).parent.parent
-    
     # All steps
     steps = [
         (

@@ -295,6 +295,10 @@ python scripts/grid_search.py --model cnn --base-config configs/cnn_gray.yaml
 # Override the default 20% search subset when needed:
 python scripts/grid_search.py --model cnn --base-config configs/cnn_gray.yaml \
   --train-fraction 0.1 --subset-seed 42
+
+# Automatically train the winner on the full training split:
+python scripts/grid_search.py --model mlp --base-config configs/mlp.yaml \
+  --train-best
 ```
 
 Every candidate gets its own timestamped run. Search metrics and a full-data
@@ -304,6 +308,9 @@ that selected configuration normally before final evaluation:
 ```bash
 python scripts/run_mlp.py --config results/search_mlp/<timestamp>/best.yaml
 ```
+
+Alternatively, `--train-best` performs this full-data run automatically after
+the search completes.
 
 Grid search uses a deterministic 20% training subset by default. Sampling is
 performed independently within every training video, so all videos remain

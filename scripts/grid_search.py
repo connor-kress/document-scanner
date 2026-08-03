@@ -90,6 +90,7 @@ def main(
     base_config_path: Path,
     train_fraction: float = 0.2,
     subset_seed: int = 42,
+    train_best: bool = False,
 ) -> None:
     if not 0 < train_fraction <= 1:
         raise ValueError("--train-fraction must be in the interval (0, 1]")
@@ -125,9 +126,19 @@ def main(
         best = max(rows, key=lambda row: float(row["best_val_iou"]))
         best_config = load_yaml(Path(str(best["run_dir"])) / "config.yaml")
         best_config.update(name=f"{base['name']}_best", train_fraction=1.0)
-        save_yaml(best_config, search_dir / "best.yaml")
+        best_config_path = search_dir / "best.yaml"
+        save_yaml(best_config, best_config_path)
         print(f"selected trial {best['trial']} with IoU={best['best_val_iou']:.4f}")
-        print(f"full-data config: {search_dir / 'best.yaml'}")
+        print(f"full-data config: {best_config_path}")
+
+    if train_best:
+        script = "run_mlp.py" if model == "mlp" else "run_cnn.py"
+        print(f"training best configuration on full data: {best_config_path}")
+        subprocess.run(
+            [sys.executable, str(PROJECT / "scripts" / script), "--config", str(best_config_path)],
+            cwd=PROJECT,
+            check=True,
+        )
 
 
 if __name__ == "__main__":
@@ -136,5 +147,6 @@ if __name__ == "__main__":
     parser.add_argument("--base-config", type=Path, required=True)
     parser.add_argument("--train-fraction", type=float, default=0.2)
     parser.add_argument("--subset-seed", type=int, default=42)
+    parser.add_argument("--train-best", action="store_true")
     args = parser.parse_args()
-    main(args.model, args.base_config, args.train_fraction, args.subset_seed)
+    main(args.model, args.base_config, args.train_fraction, args.subset_seed, args.train_best)

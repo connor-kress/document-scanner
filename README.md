@@ -9,60 +9,19 @@ multi-output regression problem. ML term project.
 
 ## Setup
 
-```bash
-python -m venv .venv
-.venv/Scripts/activate          # macOS/Linux: source .venv/bin/activate
-pip install -e .                # makes `src/` importable everywhere -- no path hacks
-python -m ipykernel install --user --name venv --display-name "venv"
-```
-
-That last line registers this venv as a notebook kernel. **In VS Code or Jupyter,
-pick "venv" in the kernel selector** (top right of the
-notebook). If you get `ModuleNotFoundError: No module named 'preprocess'`, the
-notebook is running some other Python — that's the fix.
-
-## Get the data
-
-The dataset is 1.3 GB, so it is not in git. Download it once:
-
-1. Go to the SmartDoc 2015 Challenge 1 release:
-   <https://github.com/jchazalon/smartdoc15-ch1-dataset/releases/tag/v2.0.0>
-2. Download **`frames.tar.gz`** (~1 GB).
-3. Extract it into `data/raw/` so you end up with a `frames` folder:
-
-   ```powershell
-   mkdir data\raw
-   tar -xzf frames.tar.gz -C data\raw
-   ```
-
-   `tar` ships with Windows 10+, macOS and Linux. If the archive extracts as
-   loose files instead of a `frames` folder, move them into `data/raw/frames/`
-   yourself.
-
-You should end up with exactly this:
-
-```
-data/raw/frames/
-├── background01/ ... background05/     the 24,889 photos
-├── metadata.csv.gz                     the corner labels
-├── README.md, LICENCE, VERSION
-└── original_datasets_files.txt
-```
-
-Check it worked:
-
-```powershell
-python -c "from preprocess import FRAMES; print(FRAMES.exists(), (FRAMES/'metadata.csv.gz').exists())"
-```
-
-Both should print `True`. Then build everything:
+From a Python 3.11+ environment, install the project and run the complete
+pipeline:
 
 ```bash
-python scripts/build_data.py all      # ~6 min on 10 cores
+python -m pip install -e .
+python scripts/orchestrate.py
 ```
 
-That writes `data/processed/` — the manifest, the model-ready arrays, and a
-resized frame tree. Everything under `data/` is regenerable and git-ignored.
+The orchestrator downloads and verifies the public SmartDoc dataset when it is
+missing, preprocesses it, searches model configurations, trains each selected
+model on the full training split, and runs final evaluation. Existing valid
+data is reused. Use `python scripts/orchestrate.py --workers 1` only if
+preprocessing runs out of memory.
 
 ## Using the data
 

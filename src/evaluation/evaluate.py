@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import cv2
 import joblib
 import numpy as np
 import pandas as pd
@@ -42,13 +43,15 @@ def evaluate_ridge(
 
 def evaluate_mlp(
     model_path: str | Path,
-    input_dim: int,
+    input_dim: int | None,
     hidden: list[int],
     dropout: list[float],
     split: str = "test",
     scheme: str = "split_video",
     array_name: str = "tab_64x36_clahe",
     pca_path: str | Path | None = None,
+    sharpened: bool = False,
+    preprocessing: str = "none",
     device: str | None = None,
 ) -> tuple[dict, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     parts, _, raw = load_arrays(array_name, scheme=scheme)
@@ -57,13 +60,23 @@ def evaluate_mlp(
     image_paths = raw["image_path"][mask]
     bg_ids = raw["bg_id"][mask]
 
+    if preprocessing == "rgb_to_gray":
+        X_eval_raw = np.stack([cv2.cvtColor(image, cv2.COLOR_RGB2GRAY) for image in X_eval_raw])
+    elif preprocessing != "none":
+        raise ValueError(f"unsupported MLP preprocessing: {preprocessing}")
+    if sharpened:
+        sharpened_images = np.empty_like(X_eval_raw)
+        for idx, image in enumerate(X_eval_raw):
+            blurred = cv2.GaussianBlur(image, (0, 0), sigmaX=1.5)
+            sharpened_images[idx] = cv2.addWeighted(image, 1.5, blurred, -0.5, 0)
+        X_eval_raw = sharpened_images
     X_eval = X_eval_raw.reshape(len(X_eval_raw), -1).astype(np.float32) / 255.0
     if pca_path is not None:
         pca = joblib.load(pca_path)
         X_eval = pca.transform(X_eval)
 
     device_t = torch.device(device or ("cuda" if torch.cuda.is_available() else "cpu"))
-    model = CornerMLP(input_dim=input_dim, hidden=hidden, dropout=dropout)
+    model = CornerMLP(input_dim=input_dim or X_eval.shape[1], hidden=hidden, dropout=dropout)
     model.load_state_dict(torch.load(model_path, map_location=device_t, weights_only=True))
     model = model.to(device_t)
     loader = DataLoader(FlatDataset(X_eval, y_eval), batch_size=512, shuffle=False, num_workers=0)

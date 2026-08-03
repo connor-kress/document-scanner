@@ -166,9 +166,10 @@ If both pass, you have valid preprocessed data. Proceed to modeling.
 python scripts/run_ridge.py
 ```
 
-Saves to: `results/ridge/`
+Saves to a unique run directory: `results/ridge/<UTC timestamp>/`
 - `best_pipeline.joblib` — trained Ridge model
-- `config.yaml` — hyperparameters used (PCA=256, alpha=1.0)
+- `config.yaml` — selected hyperparameters
+- `experiments.csv` — validation metrics and timing for every candidate
 
 Expected output:
 ```
@@ -188,13 +189,16 @@ python scripts/run_mlp.py
 
 # Or with optional color & sharpening experiments:
 python scripts/run_mlp.py --compare-color --compare-sharpening
+
+# Or train one final configuration:
+python scripts/run_mlp.py --config configs/mlp.yaml
 ```
 
-Saves to: `results/mlp/`  
+Saves to a unique run directory: `results/mlp/<UTC timestamp>/`
 - `best.pt` — trained MLP checkpoint  
 - `best_pca.joblib` — PCA transformer (if used)  
 - `config.yaml` — hyperparameters  
-- `mlp_gray_pca256/history.csv` — training/val curves
+- `trials/<name>/history.csv` — comparison-mode curves; YAML runs use `history.csv`
 
 Expected output:
 ```
@@ -212,7 +216,7 @@ Val IoU: 0.7845 (better than Ridge)
 python scripts/run_cnn.py --config configs/cnn_gray.yaml --overfit-test
 ```
 
-Saves to: `results/cnn_gray/`
+Saves to: `results/cnn_gray/<UTC timestamp>/`
 - `best.pt` — best CNN checkpoint by validation IoU  
 - `history.csv` — epoch-by-epoch training curves
 
@@ -228,7 +232,7 @@ Saves to: `results/cnn_gray/`
 python scripts/run_cnn.py --config configs/cnn_rgb.yaml --overfit-test
 ```
 
-Saves to: `results/cnn_rgb/`
+Saves to: `results/cnn_rgb/<UTC timestamp>/`
 
 Expected validation IoU: comparable to grayscale (validates that color doesn't help unfairly).
 
@@ -244,9 +248,11 @@ Expected validation IoU: comparable to grayscale (validates that color doesn't h
 python scripts/final_eval.py
 ```
 
+The newest successfully completed run for each model family is selected automatically.
+
 Outputs:
-- `results/final_comparison.csv` — 9 metrics per model (corner error, IoU, timing)
-- `results/by_background.csv` — per-background breakdown
+- `results/evaluation/<UTC timestamp>/final_comparison.csv` — 9 metrics per model
+- `results/evaluation/<UTC timestamp>/by_background.csv` — per-background breakdown
 
 Expected output:
 ```
@@ -274,9 +280,40 @@ python scripts/run_cnn.py --config configs/cnn_gray.yaml --overfit-test && \
 python scripts/run_cnn.py --config configs/cnn_rgb.yaml --overfit-test && \
 python scripts/final_eval.py
 
-# 4. View results
-cat results/final_comparison.csv
+# 4. View the path printed by final_eval.py
 ```
+
+## Hyperparameter Search
+
+Broad searches are generated in Python with `ParameterGrid`. Edit `MLP_GRID`
+or `CNN_GRID` in `scripts/grid_search.py`, then use a YAML file as the base:
+
+```bash
+python scripts/grid_search.py --model mlp --base-config configs/mlp.yaml
+python scripts/grid_search.py --model cnn --base-config configs/cnn_gray.yaml
+
+# Override the default 20% search subset when needed:
+python scripts/grid_search.py --model cnn --base-config configs/cnn_gray.yaml \
+  --train-fraction 0.1 --subset-seed 42
+```
+
+Every candidate gets its own timestamped run. Search metrics and a full-data
+`best.yaml` are saved under `results/search_<model>/<UTC timestamp>/`. Train
+that selected configuration normally before final evaluation:
+
+```bash
+python scripts/run_mlp.py --config results/search_mlp/<timestamp>/best.yaml
+```
+
+Grid search uses a deterministic 20% training subset by default. Sampling is
+performed independently within every training video, so all videos remain
+represented, and every candidate for that model receives exactly the same
+rows. Validation inference and loss continue to use the full validation split;
+the existing per-epoch IoU calculation uses 500 evenly spaced validation rows.
+The subset fraction and seed are recorded in each candidate's config and in
+the search CSV. Set `--train-fraction 1.0` for a full-data search. Regular
+YAML-driven training and generated `best.yaml` files use
+`train_fraction: 1.0`.
 
 ## Troubleshooting
 

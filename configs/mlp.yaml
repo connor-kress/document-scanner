@@ -4,6 +4,8 @@ input_source: tab_64x36_clahe
 scheme: split_video
 pca_components: 256
 use_pca: true
+sharpened: false
+preprocessing: none
 hidden: [256, 128]
 dropout: [0.3, 0.2]
 learning_rate: 0.0003
@@ -13,3 +15,5 @@ max_epochs: 100
 patience: 12
 loss: smooth_l1
 random_seed: 42
+train_fraction: 1.0
+subset_seed: 42

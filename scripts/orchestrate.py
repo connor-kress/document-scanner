@@ -44,19 +44,19 @@ def main():
     # All steps
     steps = [
         (
-            [sys.executable, "scripts/run_ridge.py"],
+            [sys.executable, "scripts/train_ridge.py"],
             "Ridge Regression (baseline)"
         ),
         (
-            [sys.executable, "scripts/run_mlp.py", "--compare-color", "--compare-sharpening"],
+            [sys.executable, "scripts/train_mlp.py", "--compare-color", "--compare-sharpening"],
             "MLP Neural Network (with color + sharpening)"
         ),
         (
-            [sys.executable, "scripts/run_cnn.py", "--config", "configs/cnn_gray.yaml", "--overfit-test"],
+            [sys.executable, "scripts/train_cnn.py", "--config", "configs/cnn_gray.yaml", "--overfit-test"],
             "CNN Grayscale (overfit test)"
         ),
         (
-            [sys.executable, "scripts/run_cnn.py", "--config", "configs/cnn_rgb.yaml", "--overfit-test"],
+            [sys.executable, "scripts/train_cnn.py", "--config", "configs/cnn_rgb.yaml", "--overfit-test"],
             "CNN RGB (overfit test)"
         ),
         (

@@ -218,6 +218,11 @@ __marimo__/
 .streamlit/secrets.toml
 data/
 
+# Generated training artifacts and Slurm runtime state
+results/
+logs/
+exports/
+
 # Local agent/editor state
 .claude/
-
+slurm/

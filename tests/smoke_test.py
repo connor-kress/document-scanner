@@ -117,10 +117,10 @@ def test_mlp_minimal():
         return False
 
 def test_cnn_overfit():
-    """Test 4: CNN overfit test - skipped (run_cnn.py has built-in overfit-test)."""
+    """Test 4: CNN overfit test - skipped (train_cnn.py has built-in overfit-test)."""
     print("\n[SMOKE TEST 4] CNN overfit test (SKIP)...")
-    print(f"ℹ SKIP: run_cnn.py --overfit-test performs this check")
-    return True  # Skip this test since run_cnn.py handles it
+    print(f"ℹ SKIP: train_cnn.py --overfit-test performs this check")
+    return True  # Skip this test since train_cnn.py handles it
 
 def main():
     """Run all smoke tests."""

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Run the MLP experiments required by the comparison plan."""
+"""Train the MLP models required by the comparison plan."""
 from __future__ import annotations
 
 import argparse

@@ -52,7 +52,7 @@ def _run_trial(model: str, config: dict) -> Path:
         config_path = Path(handle.name)
     try:
         save_yaml(config, config_path)
-        script = "run_mlp.py" if model == "mlp" else "run_cnn.py"
+        script = "train_mlp.py" if model == "mlp" else "train_cnn.py"
         subprocess.run(
             [
                 sys.executable,
@@ -132,7 +132,7 @@ def main(
         print(f"full-data config: {best_config_path}")
 
     if train_best:
-        script = "run_mlp.py" if model == "mlp" else "run_cnn.py"
+        script = "train_mlp.py" if model == "mlp" else "train_cnn.py"
         print(f"training best configuration on full data: {best_config_path}")
         subprocess.run(
             [sys.executable, str(PROJECT / "scripts" / script), "--config", str(best_config_path)],

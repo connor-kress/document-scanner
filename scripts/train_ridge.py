@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Run the Ridge experiments required by the comparison plan."""
+"""Train the Ridge models required by the comparison plan."""
 from __future__ import annotations
 
 import csv

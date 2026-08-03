@@ -163,7 +163,7 @@ If both pass, you have valid preprocessed data. Proceed to modeling.
 **Baseline model**: uses PCA dimensionality reduction and optional sharpening.
 
 ```bash
-python scripts/run_ridge.py
+python scripts/train_ridge.py
 ```
 
 Saves to a unique run directory: `results/ridge/<UTC timestamp>/`
@@ -185,13 +185,13 @@ Val IoU: 0.7234
 
 ```bash
 # Main comparison (2 models: gray_pca256, gray_nopca)
-python scripts/run_mlp.py
+python scripts/train_mlp.py
 
 # Or with optional color & sharpening experiments:
-python scripts/run_mlp.py --compare-color --compare-sharpening
+python scripts/train_mlp.py --compare-color --compare-sharpening
 
 # Or train one final configuration:
-python scripts/run_mlp.py --config configs/mlp.yaml
+python scripts/train_mlp.py --config configs/mlp.yaml
 ```
 
 Saves to a unique run directory: `results/mlp/<UTC timestamp>/`
@@ -213,7 +213,7 @@ Val IoU: 0.7845 (better than Ridge)
 **Convolutional neural network** on 384×216 grayscale input. Includes overfit test first.
 
 ```bash
-python scripts/run_cnn.py --config configs/cnn_gray.yaml --overfit-test
+python scripts/train_cnn.py --config configs/cnn_gray.yaml --overfit-test
 ```
 
 Saves to: `results/cnn_gray/<UTC timestamp>/`
@@ -229,7 +229,7 @@ Saves to: `results/cnn_gray/<UTC timestamp>/`
 **Same architecture as grayscale, but with RGB input** for color sensitivity comparison.
 
 ```bash
-python scripts/run_cnn.py --config configs/cnn_rgb.yaml --overfit-test
+python scripts/train_cnn.py --config configs/cnn_rgb.yaml --overfit-test
 ```
 
 Saves to: `results/cnn_rgb/<UTC timestamp>/`
@@ -274,10 +274,10 @@ python scripts/build_data.py all --workers 2
 # 2. Then in Jupyter, run notebook cells 35–36 to verify
 
 # 3. Train all models sequentially (~1.5 hours total)
-python scripts/run_ridge.py && \
-python scripts/run_mlp.py --compare-color --compare-sharpening && \
-python scripts/run_cnn.py --config configs/cnn_gray.yaml --overfit-test && \
-python scripts/run_cnn.py --config configs/cnn_rgb.yaml --overfit-test && \
+python scripts/train_ridge.py && \
+python scripts/train_mlp.py --compare-color --compare-sharpening && \
+python scripts/train_cnn.py --config configs/cnn_gray.yaml --overfit-test && \
+python scripts/train_cnn.py --config configs/cnn_rgb.yaml --overfit-test && \
 python scripts/final_eval.py
 
 # 4. View the path printed by final_eval.py
@@ -306,7 +306,7 @@ Every candidate gets its own timestamped run. Search metrics and a full-data
 that selected configuration normally before final evaluation:
 
 ```bash
-python scripts/run_mlp.py --config results/search_mlp/<timestamp>/best.yaml
+python scripts/train_mlp.py --config results/search_mlp/<timestamp>/best.yaml
 ```
 
 Alternatively, `--train-best` performs this full-data run automatically after

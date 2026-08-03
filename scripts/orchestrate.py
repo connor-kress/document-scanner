@@ -4,12 +4,10 @@ Orchestrate the complete training pipeline.
 
 Runs all model training scripts sequentially:
 1. Ridge regression baseline (~3 min)
-2. MLP with color and sharpening comparisons (~15-60 min)
-3. CNN grayscale with overfit test (~30 min)
-4. CNN RGB with overfit test (~30 min)
-5. Final evaluation on held-out test set (~3 min)
-
-Total estimated runtime: ~2-2.5 hours on GPU, ~8+ hours on CPU.
+2. MLP grid search and full-data training of the winner
+3. Grayscale CNN grid search and full-data training of the winner
+4. RGB CNN grid search and full-data training of the winner
+5. Final evaluation on held-out test set
 """
 
 import subprocess
@@ -48,16 +46,34 @@ def main():
             "Ridge Regression (baseline)"
         ),
         (
-            [sys.executable, "scripts/train_mlp.py", "--compare-color", "--compare-sharpening"],
-            "MLP Neural Network (with color + sharpening)"
+            [
+                sys.executable,
+                "scripts/grid_search.py",
+                "--model", "mlp",
+                "--base-config", "configs/mlp.yaml",
+                "--train-best",
+            ],
+            "MLP grid search and full-data training"
         ),
         (
-            [sys.executable, "scripts/train_cnn.py", "--config", "configs/cnn_gray.yaml", "--overfit-test"],
-            "CNN Grayscale (overfit test)"
+            [
+                sys.executable,
+                "scripts/grid_search.py",
+                "--model", "cnn",
+                "--base-config", "configs/cnn_gray.yaml",
+                "--train-best",
+            ],
+            "Grayscale CNN grid search and full-data training"
         ),
         (
-            [sys.executable, "scripts/train_cnn.py", "--config", "configs/cnn_rgb.yaml", "--overfit-test"],
-            "CNN RGB (overfit test)"
+            [
+                sys.executable,
+                "scripts/grid_search.py",
+                "--model", "cnn",
+                "--base-config", "configs/cnn_rgb.yaml",
+                "--train-best",
+            ],
+            "RGB CNN grid search and full-data training"
         ),
         (
             [sys.executable, "scripts/final_eval.py"],
@@ -70,7 +86,7 @@ def main():
     print(f"{'='*70}")
     print(f"Project root: {project_root}")
     print(f"Total steps: {len(steps)}")
-    print(f"Estimated runtime: ~2 hours (GPU) to 8+ hours (CPU)")
+    print("Neural-network searches use a deterministic 20% training subset")
     
     # Run all steps
     results = {}

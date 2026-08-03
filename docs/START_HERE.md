@@ -273,12 +273,8 @@ python scripts/build_data.py all --workers 2
 
 # 2. Then in Jupyter, run notebook cells 35–36 to verify
 
-# 3. Train all models sequentially (~1.5 hours total)
-python scripts/train_ridge.py && \
-python scripts/train_mlp.py --compare-color --compare-sharpening && \
-python scripts/train_cnn.py --config configs/cnn_gray.yaml --overfit-test && \
-python scripts/train_cnn.py --config configs/cnn_rgb.yaml --overfit-test && \
-python scripts/final_eval.py
+# 3. Search, train the selected models on full data, and evaluate them
+python scripts/orchestrate.py
 
 # 4. View the path printed by final_eval.py
 ```
@@ -310,7 +306,8 @@ python scripts/train_mlp.py --config results/search_mlp/<timestamp>/best.yaml
 ```
 
 Alternatively, `--train-best` performs this full-data run automatically after
-the search completes.
+the search completes. `scripts/orchestrate.py` uses this option for the MLP,
+grayscale CNN, and RGB CNN searches before running final evaluation.
 
 Grid search uses a deterministic 20% training subset by default. Sampling is
 performed independently within every training video, so all videos remain

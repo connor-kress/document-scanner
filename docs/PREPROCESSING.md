@@ -9,10 +9,14 @@ forward.
 ## First: get the data
 
 The normal `python scripts/orchestrate.py` workflow downloads and preprocesses
-the data automatically. To run preprocessing manually, download `frames.tar.gz`
-from
-<https://github.com/jchazalon/smartdoc15-ch1-dataset/releases/tag/v2.0.0>
-and extract it into `data/raw/`, then run `python scripts/build_data.py all`.
+the data automatically. To prepare only the data, run:
+
+```bash
+python scripts/build_data.py download  # raw data only
+python scripts/build_data.py all       # raw and processed data
+```
+
+The commands verify the published checksum and reuse valid existing data.
 
 Full steps in [START_HERE.md](START_HERE.md).
 

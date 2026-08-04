@@ -15,6 +15,13 @@ python scripts/orchestrate.py
 extracts it, preprocesses it, performs all model searches and final training,
 and runs held-out evaluation. Existing valid data is reused automatically.
 
+For data preparation without model training:
+
+```bash
+python scripts/build_data.py download  # raw data only
+python scripts/build_data.py all       # raw and processed data
+```
+
 ## Load the data (pick one)
 
 **Option A — everything in memory. Use this for ridge, MLP, and a first CNN.**
@@ -115,11 +122,14 @@ individual commands remain available for running or debugging one stage.
 python scripts/build_data.py all --workers 2
 ```
 
+This downloads and verifies the raw dataset when needed. Existing valid raw and
+processed artifacts are reused; pass `--force` only to rebuild processed data.
+
 This generates:
 - `data/processed/manifest.csv` — all frame metadata and split assignments
 - `data/processed/arrays/tab_64x36_clahe.npz` — grayscale 64×36 frames
 - `data/processed/arrays/img_128x72_rgb.npz` — RGB 128×72 frames  
-- `data/processed/frame_tree/` — raw 384×216 frames for CNN training
+- `data/processed/frames_384/` — resized 384×216 frames
 
 **If memory is tight:** reduce workers further with `--workers 1`.
 

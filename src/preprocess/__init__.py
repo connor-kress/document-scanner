@@ -11,6 +11,7 @@ geometry   maths on the 4 corner points -- reordering, area, flattening
 qc         step 1: open every photo, measure blur / brightness / colour
 manifest   step 2: build the main table -- labels, measurements, splits
 export     step 3: save the photos in shapes a model can use
+download   fetch and validate the public dataset
 cli        the `build_data` command
 
 Every function is also listed here, so `from preprocess import X` works no
@@ -35,7 +36,8 @@ from .geometry import (canonicalise_quad, denormalise, dewarp, is_convex,
 from .qc import run_qc
 from .manifest import add_splits, build_manifest, subsample
 from .export import (channel_stats, export_arrays, export_frame_tree,
-                     load_frame)
+                      load_frame)
+from .download import ensure_raw_data, processed_data_ready, raw_data_ready
 from .cli import main
 
 __all__ = [
@@ -48,5 +50,6 @@ __all__ = [
     # pipeline stages
     "run_qc", "build_manifest", "add_splits", "subsample",
     "load_frame", "export_arrays", "export_frame_tree", "channel_stats",
+    "ensure_raw_data", "raw_data_ready", "processed_data_ready",
     "main",
 ]

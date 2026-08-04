@@ -23,6 +23,16 @@ model on the full training split, and runs final evaluation. Existing valid
 data is reused. Use `python scripts/orchestrate.py --workers 1` only if
 preprocessing runs out of memory.
 
+To prepare the data without training models, run:
+
+```bash
+python scripts/build_data.py download  # raw data only
+python scripts/build_data.py all       # raw and processed data
+```
+
+Both commands verify and reuse valid existing data. Pass `--force` to `all`
+only when the processed artifacts need to be rebuilt.
+
 ## Using the data
 
 ```python

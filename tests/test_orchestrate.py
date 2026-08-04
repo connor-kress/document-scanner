@@ -5,7 +5,8 @@ import unittest
 import zipfile
 from pathlib import Path
 
-from scripts.orchestrate import processed_data_ready, raw_data_ready, safe_extract, training_steps
+from preprocess.download import processed_data_ready, raw_data_ready, safe_extract
+from scripts.orchestrate import pipeline_steps, training_steps
 
 
 class OrchestrateTests(unittest.TestCase):
@@ -53,6 +54,10 @@ class OrchestrateTests(unittest.TestCase):
         self.assertEqual(len(searches), 3)
         self.assertTrue(all("--train-best" in command for command in searches))
         self.assertEqual(steps[-1][0][1], "scripts/final_eval.py")
+
+    def test_pipeline_prepares_data_before_training(self):
+        steps = pipeline_steps(2)
+        self.assertEqual(steps[0][0][1:], ["scripts/build_data.py", "all", "--workers", "2"])
 
     def test_processed_data_requires_valid_manifests_and_arrays(self):
         with tempfile.TemporaryDirectory() as directory:

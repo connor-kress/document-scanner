@@ -1,7 +1,7 @@
 # Papers, Please
 
 Locating the four corners of a document in smartphone camera frames, as a
-multi-output regression problem. ML term project.
+multi-output regression problem. Machine Learning term project.
 
 **Connor Kress** · **Joshua Rivera** · **Cole Morgan** · **Samy Katibi** · **Vinh Nguyen**
 

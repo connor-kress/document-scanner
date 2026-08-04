@@ -9,6 +9,7 @@ from pathlib import Path
 
 import cv2
 import joblib
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
 
@@ -52,6 +53,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--weights", type=Path, help="custom model weights")
     parser.add_argument("--pca", type=Path, help="custom MLP PCA joblib file")
     parser.add_argument("--config", type=Path, help="custom MLP/CNN YAML configuration")
+    parser.add_argument("--no-show", action="store_true", help="do not display the prediction figure")
+    parser.add_argument("--output", type=Path, help="save the prediction figure to this path")
     parser.add_argument(
         "--latest-trained",
         action="store_true",
@@ -242,6 +245,34 @@ def pixel_corners(prediction: np.ndarray, width: int, height: int) -> np.ndarray
     return corners
 
 
+def display_corners(
+    image: np.ndarray,
+    corners: np.ndarray,
+    *,
+    show: bool = True,
+    output: Path | None = None,
+) -> None:
+    rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    closed = np.vstack([corners, corners[0]])
+    color = "#2a78d6"
+    height, width = image.shape[:2]
+    dpi = 100
+    fig = plt.figure(figsize=(width / dpi, height / dpi), dpi=dpi, frameon=False)
+    ax = fig.add_axes((0, 0, 1, 1))
+    fig.canvas.manager.set_window_title("Document Corner Prediction")
+    ax.imshow(rgb)
+    ax.fill(corners[:, 0], corners[:, 1], color=color, alpha=0.15)
+    ax.plot(closed[:, 0], closed[:, 1], color=color, linewidth=2, linestyle=":")
+    ax.scatter(corners[:, 0], corners[:, 1], color=color, s=35)
+    ax.axis("off")
+    if output is not None:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        fig.savefig(output, dpi=dpi, pad_inches=0)
+    if show:
+        plt.show()
+    plt.close(fig)
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
@@ -253,8 +284,11 @@ def main(argv: list[str] | None = None) -> int:
     except (FileNotFoundError, RuntimeError, ValueError) as error:
         parser.error(str(error))
     height, width = image.shape[:2]
-    for index, (x, y) in enumerate(pixel_corners(prediction, width, height)):
+    corners = pixel_corners(prediction, width, height)
+    for index, (x, y) in enumerate(corners):
         print(f"corner_{index}: ({x:.2f}, {y:.2f})")
+    if not args.no_show or args.output is not None:
+        display_corners(image, corners, show=not args.no_show, output=args.output)
     return 0
 
 

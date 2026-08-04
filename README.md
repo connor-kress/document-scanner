@@ -80,6 +80,14 @@ python scripts/infer.py path/to/document.jpg --model-type mlp \
 
 Custom artifact paths and `--latest-trained` require an explicit model type.
 Predicted corners are printed in pixels relative to the original image.
+The overlay is displayed by default; save it, suppress the window, or do both
+with:
+
+```bash
+python scripts/infer.py path/to/document.jpg --output prediction.png
+python scripts/infer.py path/to/document.jpg --no-show
+python scripts/infer.py path/to/document.jpg --no-show --output prediction.png
+```
 
 ## Using the data
 

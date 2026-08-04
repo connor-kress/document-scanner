@@ -219,6 +219,7 @@ __marimo__/
 data/
 results/
 models/
+predition.png
 
 # Local agent/editor state
 .claude/

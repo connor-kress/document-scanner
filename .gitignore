@@ -218,6 +218,7 @@ __marimo__/
 .streamlit/secrets.toml
 data/
 results/
+models/
 
 # Local agent/editor state
 .claude/

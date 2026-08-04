@@ -33,6 +33,25 @@ python scripts/build_data.py all       # raw and processed data
 Both commands verify and reuse valid existing data. Pass `--force` to `all`
 only when the processed artifacts need to be rebuilt.
 
+To download the pretrained model release without running the training pipeline:
+
+```bash
+python scripts/download_models.py
+```
+
+The script verifies the release checksum and installs the Ridge, MLP, grayscale
+CNN, RGB CNN, and evaluation artifacts under the git-ignored `models/`
+directory. Existing complete downloads are reused; pass `--force` to replace
+one.
+
+The default is pinned for reproducibility. Select another model release or
+explicitly opt into the newest release with:
+
+```bash
+python scripts/download_models.py --version 1.0.0
+python scripts/download_models.py --latest
+```
+
 ## Using the data
 
 ```python
@@ -66,4 +85,5 @@ scripts/          things you run from the terminal
 docs/             the proposal, plus the hand-off write-ups
 reports/figures/  committed plots for the presentation
 data/             git-ignored: raw frames in, processed artifacts out
+models/           git-ignored: downloaded pretrained model artifacts
 ```

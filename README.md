@@ -7,7 +7,23 @@ multi-output regression problem. Machine Learning term project.
 
 ---
 
-## Setup
+## Quick Start
+
+```bash
+git clone https://github.com/connor-kress/document-scanner.git
+cd document-scanner
+python -m pip install -e .
+python scripts/infer.py samples/sample_1.jpg
+```
+
+These commands work in macOS/Linux terminals and Windows PowerShell with
+Python 3.11+ available as `python`. If your system uses `python3` instead,
+replace `python` with `python3` in both commands.
+
+The first inference run automatically downloads and verifies the pretrained
+models, then displays the predicted document corners.
+
+## Training and Data
 
 From a Python 3.11+ environment, install the project and run the complete
 pipeline:

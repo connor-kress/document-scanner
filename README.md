@@ -52,6 +52,35 @@ python scripts/download_models.py --version 1.0.0
 python scripts/download_models.py --latest
 ```
 
+Run inference on an image with the released RGB CNN (the highest-performing
+model and the default):
+
+```bash
+python scripts/infer.py path/to/document.jpg
+```
+
+Select another released model, or use the newest completed training run under
+`results/`, with:
+
+```bash
+python scripts/infer.py path/to/document.jpg --model-type ridge
+python scripts/infer.py path/to/document.jpg --model-type cnn-rgb --latest-trained
+```
+
+Custom neural weights use their adjacent `config.yaml` by default. The config
+can also be selected explicitly; an MLP config that enables PCA requires its
+matching PCA artifact:
+
+```bash
+python scripts/infer.py path/to/document.jpg --model-type cnn-rgb \
+  --weights path/to/model.pt --config path/to/config.yaml
+python scripts/infer.py path/to/document.jpg --model-type mlp \
+  --weights path/to/model.pt --pca path/to/pca.joblib --config path/to/config.yaml
+```
+
+Custom artifact paths and `--latest-trained` require an explicit model type.
+Predicted corners are printed in pixels relative to the original image.
+
 ## Using the data
 
 ```python
